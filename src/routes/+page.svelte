@@ -178,7 +178,7 @@
             <h2>Blocks: {currentYearStats.blk}</h2>
             <h2>Steals: {currentYearStats.stl}</h2>
             <h2>Turnovers: {currentYearStats.turnover}</h2>
-            <h2>Field Goal %: {currentYearStats.fg_pct.toFixed(2) * 100}</h2>
+            <h2>Field Goal %: {Number(currentYearStats.fg_pct * 100).toFixed(2)}</h2>
         </div>
     </div>
 {/if}
