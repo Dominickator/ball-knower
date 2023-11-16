@@ -19,10 +19,9 @@ const config = {
 			jekyll: false
 		  }),
 		paths: {
-			base: dev ? '' : '/ball-knower',
+			base: dev ? '' : '/weather-svelte',
 		},
-		AppDir: 'internal',
-		trailingSlash: 'always'
+		appDir: 'internal',
 	  }
 };
 
