@@ -16,8 +16,28 @@
 
     async function getPlayer(playerName) {
         const response = await fetch(`https://www.balldontlie.io/api/v1/players?per_page=100&search=${playerName}`);
+        if(response.status === 404){
+            alert('Player not found');
+            return;
+        }
+        if(response.status === 400){
+            alert('Bad request, please try again');
+            return;
+        }
+        if(response.status === 429){
+            alert('Too many requests, please wait a few seconds and try again');
+            return;
+        }
+        if(response.status === 500){
+            alert('Internal server error, please try again later');
+            return;
+        }
         playerName = '';
         const data = await response.json();
+        if(data.data.length === 0){
+            alert('Player not found');
+            return;
+        }
         player = data.data[0];
         if(!player.height_feet){
             player.height_feet = 'N/A';
