@@ -1,19 +1,36 @@
 <script>
+    import { onMount } from 'svelte';
     import '../css/page.css';
     let playerName = '';
     let player = {};
     let bgColor = '';
     let fgColor = '';
     let currentYearStats = {};
+    let season = 2023;
+    let pastStats = {};
+    let pastStatsHolder = [];
+
+    function delay(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 
     async function getPlayer(playerName) {
         const response = await fetch(`https://www.balldontlie.io/api/v1/players?per_page=100&search=${playerName}`);
         playerName = '';
         const data = await response.json();
         player = data.data[0];
-        getColors();
-        getStats();
+        if(!player.height_feet){
+            player.height_feet = 'N/A';
+            player.height_inches = '';
+            player.weight_pounds = 'N/A';
+        }
+        await getColors();
+        await getStats();
     }
+
+    /*onMount(async () => {
+        getPlayer('LeBron James');
+    });*/
 
     async function getColors(){
         switch(player.team.name){
@@ -144,9 +161,35 @@
     }
 
     async function getStats(){
-        const response = await fetch(`https://www.balldontlie.io/api/v1/season_averages?season=2023&player_ids[]=${player.id}`);
+        season = 2023;
+        const response = await fetch(`https://www.balldontlie.io/api/v1/season_averages?season=${season}&player_ids[]=${player.id}`);
         const data = await response.json();
-        currentYearStats = data.data[0];
+        if(data.data.length > 0){
+            currentYearStats = data.data[0];
+        } else {
+            while(data.data.length === 0){
+                season--;
+                const response = await fetch(`https://www.balldontlie.io/api/v1/season_averages?season=${season}&player_ids[]=${player.id}`);
+                const data = await response.json();
+                if(data.data.length > 0){
+                    currentYearStats = data.data[0];
+                    break;
+                }
+            }
+        }
+        season--;
+        pastStatsHolder = [];
+        for(let i = 0; i < 10; i++){
+            console.log(season);
+            const response = await fetch(`https://www.balldontlie.io/api/v1/season_averages?season=${season}&player_ids[]=${player.id}`);
+            const data = await response.json();
+            if(data.data.length > 0){
+                pastStats = data.data[0];
+                pastStatsHolder.push(pastStats); // Using push to add to the array
+                pastStatsHolder = [...pastStatsHolder];
+            }
+            season--;
+        }
     }
 
 </script>
@@ -159,7 +202,7 @@
 </div>
 
 
-{#if player.first_name}
+{#if player.first_name && player.height_feet != "N/A"}
     <div class="container" style="background-color: {bgColor}; color: {fgColor}">
         <div class="playerholder" style="background-color: {bgColor}; color: {fgColor}">
             <h1>{player.first_name} {player.last_name}</h1>
@@ -180,5 +223,51 @@
             <h2>Turnovers: {currentYearStats.turnover}</h2>
             <h2>Field Goal %: {Number(currentYearStats.fg_pct * 100).toFixed(2)}</h2>
         </div>
+    </div>
+    <div class="container" style="background-color: {bgColor}; color: {fgColor}">
+        <section class="past-grid">
+            {#each pastStatsHolder as past}
+                <div class="card">
+                    <h2>{past.season}</h2>
+                    <h3>Games Played: {past.games_played}</h3>
+                    <h3>Points: {past.pts}</h3>
+                    <h3>Rebounds: {past.reb}</h3>
+                    <h3>Assists: {past.ast}</h3>
+                </div>
+            {/each}
+        </section>
+    </div>
+{:else if player.first_name && player.height_feet === "N/A"}
+    <div class="container" style="background-color: {bgColor}; color: {fgColor}">
+        <div class="playerholder" style="background-color: {bgColor}; color: {fgColor}">
+            <h1>{player.first_name} {player.last_name}</h1>
+            <img src="https://www.basketball-reference.com/req/202106291/images/headshots/{player.last_name.substring(0, 5).toLowerCase()}{player.first_name.substring(0, 2).toLowerCase()}01.jpg" alt="Picture of {player.first_name} {player.last_name}" />
+            <h2>{player.team.full_name}</h2>
+            <h2>{player.position}</h2>  
+        </div>
+        <div class="playerholder" style="background-color: {bgColor}; color: {fgColor}">
+            <h1>{currentYearStats.season} Season Stats</h1>
+            <h2>Games Played: {currentYearStats.games_played}</h2>
+            <h2>Points: {currentYearStats.pts}</h2>
+            <h2>Rebounds: {currentYearStats.reb}</h2>
+            <h2>Assists: {currentYearStats.ast}</h2>
+            <h2>Blocks: {currentYearStats.blk}</h2>
+            <h2>Steals: {currentYearStats.stl}</h2>
+            <h2>Turnovers: {currentYearStats.turnover}</h2>
+            <h2>Field Goal %: {Number(currentYearStats.fg_pct * 100).toFixed(2)}</h2>
+        </div>
+    </div>
+    <div class="container" style="background-color: {bgColor}; color: {fgColor}">
+        <section class="past-grid">
+            {#each pastStatsHolder as past}
+                <div class="card">
+                    <h2>{past.season}</h2>
+                    <h3>Games Played: {past.games_played}</h3>
+                    <h3>Points: {past.pts}</h3>
+                    <h3>Rebounds: {past.reb}</h3>
+                    <h3>Assists: {past.ast}</h3>
+                </div>
+            {/each}
+        </section>
     </div>
 {/if}

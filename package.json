@@ -3,10 +3,13 @@
 	"version": "0.0.1",
 	"private": true,
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "vite dev --host",
 		"build": "vite build",
 		"preview": "vite preview",
 		"gh-pages": "npm run build && npx gh-pages -d build"
+	},
+	"server": {
+		"host": true
 	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^2.0.0",
